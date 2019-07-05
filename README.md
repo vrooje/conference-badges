@@ -54,10 +54,16 @@ The inside of the badges is printed upside-down so that it will be right-side-up
 
 There are 4 Python scripts:
 
+#### Scripts to run from the command line
+
  - `make_all_badges.py`: input the registration spreadsheet (CSV) and generate all the badges as individual files and/or one single file. Also flags potential issues (e.g. name mismatches; see spreadsheet info below) that might need following up. *Use this script to generate all your badges.*
  - `make_one_badge.py`: generate a single badge, either to modify a badge that's already in the spreadsheet or to generate a new badge on the fly. Run at the command line without additional inputs to print detailed info on the changes you can make. Theoretically you could use it to generate all your badges, but as this matches to the spreadsheet for each badge, that would be much slower than using `make_all_badges` above. This is designed to be used at the registration desk during the conference for one-off reprints. New badges or changes to badges do *not* get recorded in the spreadsheet.
+
+#### Support scripts
+
  - `get_badge_spreadsheet.py`: designed to be imported by the other scripts, e.g. `from get_badge_spreadsheet import get_badge_spreadsheet`. Reads in the spreadsheet and returns it to whichever program is being used to make/modify a badge.
  - `make_badge.py`: designed to be imported by the other scripts, e.g. `from make_badge import make_badge`; this has functions to generate a single badge and return it to the other scripts.
+
 
 ### The input spreadsheet
 
