@@ -1,0 +1,11 @@
+name: conf_badge
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy=1.11.2=py35_0
+  - pandas=0.18.1=np111py35_0
+  - pillow=4.2.1=py35_0
+  - python=3.5.1=5
+prefix: /Users/vrooje/anaconda/envs/conf_badge
+
