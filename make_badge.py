@@ -613,8 +613,8 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         suffix_text    = ''
         name_on_badge_new = name_on_badge + ''
 
-        # Honestly the sheer amount of code I've had to add for the 2 people who insisted on having their MBE status printed on
-        # that has to be a metaphor for something
+        # Honestly the sheer amount of code I've had to add for the 2 people who insisted on having their MBE status
+        # printed on the badge has to be a metaphor for something
 
         for postnom in postnominals:
             # add the space just in case someone's name ends in "obe" (etc) and they love all-caps
@@ -661,17 +661,36 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
                 draw_front.text((ctr_text_pos[0]+q2_ul[0], ctr_text_pos[1]), this_item, font=this_font, fill=textcol)
 
 
-                this_item = surname + ' '
-                this_key  = 'surname'
-                this_font, ctr_text_pos, multiline = get_text_params(this_item, fonts[this_key], this_key, draw_front, textsize_max=textsize_max, force_oneline=True)
-                # get the size of this font
-                txtsize = fonts[this_key].getsize(this_item)
-                
+                # the given name was the easy part; let's now deal with the surname + postnominal 
+                # we need to get the size of the postnominal in the anticipated size and then resize the full line
+                # assuming it's that proportional size
+
                 next_item = postnom_on_badge
                 next_key  = 'given_name'
-                # this is modified because we need to size the font to prevent overspill of a smaller width (by the width of the surname text)
+                pn_size = fonts[next_key].getsize(next_item)
+
+                this_item = surname + ' '
+                this_key  = 'surname'
+                sn_size = fonts[this_key].getsize(this_item)
+
+                # what is the fractional size of the surname alone, in proportion to surname + postnominals?
+                sn_size_f = float(sn_size[0])/float(sn_size[0] + pn_size[0])
+                # that's the text width we're going for as a fraction of the max
+
+                # so that's the maximum width we can go for in this case
+                textsize_max_sn = (int(textsize_max[0]*sn_size_f), textsize_max[1])
+
+                # resize fonts as needed given the text and max width
+                this_font, ctr_text_pos, multiline = get_text_params(this_item, fonts[this_key], this_key, draw_front, textsize_max=textsize_max_sn, force_oneline=True)
+                # get the actual size of the text in the new font
+                txtsize = this_font.getsize(this_item)
+
+                # we now need to size the postnom font to prevent overspill of a smaller width (by the width of the surname text)
                 next_font, next_ctr_text_pos, multiline_next = get_text_params(next_item, fonts[next_key], next_key, draw_front, textsize_max=(textsize_max[0] - txtsize[0], textsize_max[1]), force_oneline=True) 
                 txtsize_next = next_font.getsize(next_item)
+
+                # we've now gotten sizes so now we can get positions and place things properly                
+
                 txtwidth_tot = txtsize[0] + txtsize_next[0]
                 # get the coordinates-to-center of the combined string
                 this_ctr_txt_combined = get_ul_of_centered_size(q1_size, (txtwidth_tot, txtsize[1]))
@@ -686,6 +705,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
                 draw_front.text(postnom_pos, next_item, font=next_font, fill=textcol)
                 draw_front.text((postnom_pos[0]+q2_ul[0], postnom_pos[1]), next_item, font=next_font, fill=textcol)                
 
+                # the above might not look right for all edge cases so create a warning message
                 this_errormsg = "NOTE: Badge for %s has postnominals, which we've tried to print nicely but this should be manually checked to make sure it looks ok" % name_on_badge
                 errormsg.extend([this_errormsg])
                 if verbose:
@@ -699,6 +719,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
 
         # if it's not a special suffix let's try one more thing
         # assume they might have "surname, some-other-stuff"
+        # e.g. at our conference we had "So-and-so Surname, Artist"
         elif "%s," % surname in name_on_badge:
             
 
