@@ -4,19 +4,21 @@ from PIL import Image, ImageDraw, ImageFont
 from make_badge import make_badge
 from get_badge_spreadsheet import get_badge_spreadsheet
 
-# CSV with registration info
-# reg_file = "NAM - Delegate test badges.csv"
-reg_file = "NAM - Delegate Registrations 3rd June.csv"
-# reg_file = "NAM_Delegate_test_badges_meals_lunches.csv"
+reg_file = "registration_spreadsheet_example.csv"
 
 
 # list of email addresses of LOC members (who get a special badge flag)
-loc_list = "NAM_loc_list.csv"
+# it's technically a csv but with 1 column so just 1 email per line, no commas
+# but with the first line having column names
+loc_list = "LOC_list.csv"
 
 # list of names of RAS council members (who get a special badge flag)
 # The RAS didn't seem forthcoming with a list of email addresses so let's just hope a name search works
 # this list is structured like council_first_name,council_surname
+# This is quite specific to this example conference but easily substituted for a list of VIPs etc for yours
+#   (in which case you'll also want to edit the banner image that goes with it)
 council_list = "RAS_council_list.csv"
+
 
 # reads spreadsheets, matches up lists for banner info, returns a dataframe
 # this was originally just part of this script but I broke it out so I could also have a script to print 1 badge of my choosing
