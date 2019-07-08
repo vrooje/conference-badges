@@ -6,10 +6,17 @@ import sys, os
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from make_badge import make_badge
-from get_badge_spreadsheet import get_badge_spreadsheet, get_default_files
+from get_badge_spreadsheet import get_badge_spreadsheet, get_default_files, get_spreadsheet_colnames
 
 
 reg_file, loc_list, council_list = get_default_files()
+
+thecols = get_spreadsheet_colnames()
+
+# we're using a lot of columns below but these in particular several times
+# so doing this just makes the code a little bit easier to read
+nameonbadge_col = thecols['nameonbadge_col']
+surname_col     = thecols['surname_col']
 
 
 # if updated info is present it's a dictionary with keys corresponding to items in the particular row of reg_info you want replaced
@@ -22,7 +29,7 @@ def make_one_badge(name_on_badge, reg_file=reg_file, loc_list=loc_list, council_
 
 
         # extract just the badges we want (Name on Badge is unique for the above default spreadsheet, if it's not for you then this might not work)
-        reg_this = reg_info[reg_info['Name on Badge'] == name_on_badge]
+        reg_this = reg_info[reg_info[nameonbadge_col] == name_on_badge]
 
         if len(reg_this) < 1:
             return "BADGE NAME %s NOT FOUND, not saved" % name_on_badge
@@ -32,11 +39,11 @@ def make_one_badge(name_on_badge, reg_file=reg_file, loc_list=loc_list, council_
 
         # .squeeze() makes the row of the dataframe into a Series, which is what make_badge needs
         # don't just do reg_this.squeeze() because then it's a copy of a slice of a dataframe and pandas gets cross
-        reg = reg_info[reg_info['Name on Badge'] == name_on_badge].squeeze()
+        reg = reg_info[reg_info[nameonbadge_col] == name_on_badge].squeeze()
 
 
-        # e.g. if reg_info has ['Name on Badge'] == 'Patrick Stweart' and he wants to fix that plus also have a bus pass, then
-        # updated_info = {'Name on Badge' : 'Patrick Stewart', Travel' : 'Free local bus travel'}
+        # e.g. if reg_info has [nameonbadge_col] == 'Patrick Stweart' and he wants to fix that plus also have a bus pass, then
+        # updated_info = {nameonbadge_col : 'Patrick Stewart', Travel' : 'Free local bus travel'}
         # and if you also want to make sure that "Stewart" prints in bigger font as is usual, add 'Delegate Surname' : 'Stewart' as well
         # then when you pass that dictionary to this, it will update the info in the Series before it makes the badge
         # note it won't update the spreadsheet file so that will still be wrong
@@ -107,79 +114,79 @@ if __name__ == '__main__':
             arg = argstr.split('=')
 
             if arg[0]   == "name_new":
-                updated_info['Name on Badge'] = arg[1].replace('"','')
+                updated_info[nameonbadge_col] = arg[1].replace('"','')
             elif arg[0] == "surname":
-                updated_info['Delegate Surname'] = arg[1].replace('"','')
+                updated_info[surname_col] = arg[1].replace('"','')
             elif arg[0].lower().startswith("pronoun"):
-                updated_info['Preferred Pronouns'] = arg[1].replace('"','')
+                updated_info[thecols['pronouns_col']] = arg[1].replace('"','')
             elif arg[0].lower().startswith("affil"):
-                updated_info['Affiliation'] = arg[1].replace('"','')
+                updated_info[thecols['affiliation_col']] = arg[1].replace('"','')
             elif arg[0].lower().startswith("starter"):
-                updated_info['Starter'] = arg[1].replace('"','')
+                updated_info[thecols['starter_col']] = arg[1].replace('"','')
             elif arg[0].lower().startswith("main"):
-                updated_info['Main'] = arg[1].replace('"','')
+                updated_info[thecols['main_col']] = arg[1].replace('"','')
             elif arg[0].lower().startswith("dessert"):
-                updated_info['Dessert'] = arg[1].replace('"','')
+                updated_info[thecols['dessert_col']] = arg[1].replace('"','')
             elif arg[0].lower().startswith("bus"):
                 if int(arg[1]) == 1:
-                    updated_info['Travel'] = 'Free local bus travel'
+                    updated_info[thecols['travelpref_col']] = 'Free local bus travel'
                 else:
-                    updated_info['Travel'] = 'Neither'
+                    updated_info[thecols['travelpref_col']] = 'Neither'
             elif arg[0].startswith("castle"):
                 if int(arg[1]) == 1:
-                    updated_info['Lancaster Castle 01.07.2019'] = 1.0
+                    updated_info[thecols['castle_col']] = 1.0
                 else:
-                    updated_info['Lancaster Castle 01.07.2019'] = 2.0
+                    updated_info[thecols['castle_col']] = 2.0
             elif arg[0].startswith("pie"):
                 if int(arg[1]) == 1:
-                    updated_info['Pie & Quiz 02.07.2019'] = 1.0
+                    updated_info[thecols['pie_col']] = 1.0
                 else:
-                    updated_info['Pie & Quiz 02.07.2019'] = 0.0
+                    updated_info[thecols['pie_col']] = 0.0
             elif "dinner" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['RAS Award Dinner 03.07.2019'] = 1.0
+                    updated_info[thecols['dinner_col']] = 1.0
                 else:
-                    updated_info['RAS Award Dinner 03.07.2019'] = 0.0
+                    updated_info[thecols['dinner_col']] = 0.0
             elif "council" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['is_council'] = True
+                    updated_info[thecols['council_col']] = True
                 else:
-                    updated_info['is_council'] = False
+                    updated_info[thecols['council_col']] = False
             elif "loc" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['is_loc'] = True
+                    updated_info[thecols['loc_col']] = True
                 else:
-                    updated_info['is_loc'] = False
+                    updated_info[thecols['loc_col']] = False
             elif "press" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['is_press'] = True
+                    updated_info[thecols['press_col']] = True
                 else:
-                    updated_info['is_press'] = False
+                    updated_info[thecols['press_col']] = False
             elif "monday" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['Attending 1st'] = 1
+                    updated_info[thecols['dayattend_cols'][0]] = 1
                 else:
-                    updated_info['Attending 1st'] = 0
+                    updated_info[thecols['dayattend_cols'][0]] = 0
             elif "tuesday" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['Attending 2nd'] = 1
+                    updated_info[thecols['dayattend_cols'][1]] = 1
                 else:
-                    updated_info['Attending 2nd'] = 0
+                    updated_info[thecols['dayattend_cols'][1]] = 0
             elif "wednesday" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['Attending 3rd'] = 1
+                    updated_info[thecols['dayattend_cols'][2]] = 1
                 else:
-                    updated_info['Attending 3rd'] = 0
+                    updated_info[thecols['dayattend_cols'][2]] = 0
             elif "thursday" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['Attending 4th'] = 1
+                    updated_info[thecols['dayattend_cols'][3]] = 1
                 else:
-                    updated_info['Attending 4th'] = 0
+                    updated_info[thecols['dayattend_cols'][3]] = 0
             elif "all_days" in arg[0]:
                 if int(arg[1]) == 1:
-                    updated_info['Full - Rate 4'] = 1
+                    updated_info[thecols['fullrate_cols'][3]] = 1
                 else:
-                    updated_info['Full - Rate 4'] = 0
+                    updated_info[thecols['fullrate_cols'][3]] = 0
             elif "--all_new" in arg[0]:
                 all_new_badge = True
 
@@ -190,31 +197,40 @@ if __name__ == '__main__':
     else:
         # check how many days are registered, if any
         n_days=0
-        dayreg_keys = ['Attending 1st', 'Attending 2nd', 'Attending 3rd', 'Attending 4th']
+        dayreg_keys = [thecols['dayattend_cols'][0], thecols['dayattend_cols'][1], thecols['dayattend_cols'][2], thecols['dayattend_cols'][3]]
         for daykey in dayreg_keys:
             if daykey in updated_info.keys():
                 n_days += updated_info[daykey]
         if n_days > 0:
-            updated_info['How many days?'] = n_days
+            updated_info[thecols['daycount_col']] = n_days
 
         if all_new_badge:
             # now we need to fill the rest of the series with blank values just so the make_badge function doesn't crash
-            for thekey in ['RAS Awards Dinner Guest', 'RAS Awards Guest Name', 'Guest Starter', 'Guest Main', 'Guest Dessert', 'Full - Rate 1', 'Full - Rate 2', 'Full - Rate 3']:
+
+            strcols = thecols['guestname_cols'].copy()
+            strcols.extend([thecols['guest_col']])
+            strcols.extend(thecols['gueststarter_cols'])
+            strcols.extend(thecols['guestmain_cols'])
+            strcols.extend(thecols['guestdessert_cols'])
+            strcols.extend(thecols['fullrate_cols'][:-1])
+            for thekey in strcols:
                 updated_info[thekey] = ''
 
-            for thekey in ['Outreach Lunch - Tue', 'Publishing Lunch - Wed', 'Diversity Lunch - Mon', 'Exoplanet Lunch - Thur', 'Careers Lunch - Thur', 'Joint MIST/UKSP Lunch - Wed', 'RAS Award Dinner 03.07.2019']:
+            intcols = thecols['lunch_cols'].copy()
+            intcols.extend([thecols['dinner_col']]) 
+            for thekey in intcols:
                 updated_info[thekey] = 0
 
             # only fill these keys if they aren't already filled
-            for thekey in ['How many days?', 'Attending 1st', 'Attending 2nd', 'Attending 3rd', 'Attending 4th', 'Full - Rate 4', 'Lancaster Castle 01.07.2019', 'Pie & Quiz 02.07.2019']:
+            for thekey in [thecols['daycount_col'], thecols['dayattend_cols'][0], thecols['dayattend_cols'][1], thecols['dayattend_cols'][2], thecols['dayattend_cols'][3], thecols['fullrate_cols'][3], thecols['castle_col'], thecols['pie_col']]:
                 if not thekey in updated_info.keys():
                     updated_info[thekey] = 0
 
-            for thekey in ['is_loc', 'is_council', 'is_press']:
+            for thekey in [thecols['loc_col'], thecols['council_col'], thecols['press_col']]:
                 if not thekey in updated_info.keys():
                     updated_info[thekey] = False
 
-            for thekey in ['Delegate First Name', 'Delegate Surname', 'Preferred Pronouns', 'Travel', 'Starter', 'Main', 'Dessert']:
+            for thekey in [thecols['givenname_col'], surname_col, thecols['pronouns_col'], thecols['travelpref_col'], thecols['starter_col'], thecols['main_col'], thecols['dessert_col']]:
                 if not thekey in updated_info.keys():
                     updated_info[thekey] = ''
 

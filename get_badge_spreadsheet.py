@@ -58,10 +58,12 @@ def get_spreadsheet_colnames():
         'locemail_col'    : 'loc_email',
         'councilname_col' : 'council_surname',
 
+        'press_col'       : 'is_press',
+
 
         'fullrate_cols'          : ['Full - Rate 1', 'Full - Rate 2', 'Full - Rate 3', 'Full - Rate 4'],
         'dayrate_cols'           : ['Day Rate 1', 'Day Rate 2', 'Day Rate 3', 'Day Rate 4'],
-        'dayattend_cols'         : ['Attending 1st ', 'Attending 2nd ', 'Attending 3rd', 'Attending 4th'],
+        'dayattend_cols'         : ['Attending 1st', 'Attending 2nd', 'Attending 3rd', 'Attending 4th'],
         'lunch_cols'             : ['Diversity Lunch - Mon', 'Outreach Lunch - Tue',
            'Joint MIST/UKSP Lunch - Wed', 'Publishing Lunch - Wed',
            'Careers Lunch - Thur', 'Exoplanet Lunch - Thur'],
