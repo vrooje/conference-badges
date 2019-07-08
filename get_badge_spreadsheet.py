@@ -76,7 +76,7 @@ def get_spreadsheet_colnames():
             'Dietary Requirements Guest', 'Dietary Requirements Guest 2', 'Dietary Requirements Guest 3', 
             'Dietary Requirements Guest 4', 'Dietary Requirements Guest 5'],
         'gueststarter_cols'      : ['Guest Starter', 'Guest 2 Starter', 'Guest 3 Starter', 'Guest 4 Starter', 'Guest 5 Starter'],
-        'guestmain_cols'         : ['Guest Main', 'Guest 2 Main ', 'Guest 3 Main ', 'Guest 4 Main', 'Guest 5 Main'],
+        'guestmain_cols'         : ['Guest Main', 'Guest 2 Main', 'Guest 3 Main', 'Guest 4 Main', 'Guest 5 Main'],
         'guestdessert_cols'      : ['Guest Dessert', 'Guest 2 Dessert', 'Guest 3 Dessert', 'Guest 4 Dessert', 'Guest 5 Dessert']
        
     }

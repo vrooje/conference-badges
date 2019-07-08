@@ -2,11 +2,15 @@ import sys, os
 import pandas as pd, numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+from get_badge_spreadsheet import get_spreadsheet_colnames
 
 #https://stackoverflow.com/questions/27327513/create-pdf-from-a-list-of-images
 
-
 # make a badge for NAM 2019: 2 pages (1 double-sided)
+
+
+thecols = get_spreadsheet_colnames()
+
 
 # paper size in inches 
 paper_size = [8.27, 11.69]  #A4
@@ -86,6 +90,10 @@ for thekey in tsize.keys():
     txtsize = fonts[thekey].getsize("Lancaster University")
     font_heights[thekey] = txtsize[1] #+ txtsize[1]/2  #1.5 line spacing
 
+
+# List of possible postnominals that might require modification to name printing
+# Add whatever you want to this list
+postnominals = ['FRAS', 'MBE', 'OBE', 'CBE', 'FRS']
 
 
 
@@ -281,31 +289,47 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
 
 
     # this shouldn't be an issue but let's just make sure
-    if pd.isnull(reg['Name on Badge']):
-        print_name = reg['Delegate First Name'].strip() + " " + reg['Delegate Surname'].strip()
+    if pd.isnull(reg[thecols['nameonbadge_col']]):
+        print_name = reg[thecols['givenname_col']].strip() + " " + reg[thecols['surname_col']].strip()
     else:
-        print_name = reg['Name on Badge']
+        print_name = reg[thecols['nameonbadge_col']]
 
 
     # group columns into things we might need
-    fullreg_cols = ['Full - Rate 1', 'Full - Rate 2', 'Full - Rate 3', 'Full - Rate 4']
-    dayreg_cols  = ['How many days?', 'Attending 1st', 'Attending 2nd', 'Attending 3rd', 'Attending 4th']
-    events_cols  = ['Lancaster Castle 01.07.2019', 'Pie & Quiz 02.07.2019', 'RAS Award Dinner 03.07.2019']
+    fullreg_cols = thecols['fullrate_cols']
+    dayreg_cols = [thecols['daycount_col']]
+    dayreg_cols.extend(thecols['dayattend_cols'])
+    events_cols  = [thecols['castle_col'], thecols['pie_col'], thecols['dinner_col']]
     eventcols_sh = ['castle', 'pie', 'dinner']
-    dinner_cols  = ['Starter', 'Main', 'Dessert', 'RAS Awards Dinner Guest', 'RAS Awards Guest Name', 'Guest Starter', 'Guest Main', 'Guest Dessert']
-    
 
+    dinner_cols  = [thecols['starter_col'], thecols['main_col'], thecols['dessert_col'], thecols['guest_col']]
+    dinner_cols.extend(thecols['guestname_cols'])
+    dinner_cols.extend(thecols['gueststarter_cols'])
+    dinner_cols.extend(thecols['guestmain_cols'])
+    dinner_cols.extend(thecols['guestdessert_cols'])
+
+    # lunch_print  = {
+    #     'Diversity Lunch - Mon'       : '(Di)', 
+    #     'Outreach Lunch - Tue'        : '(Ou)', 
+    #     'Joint MIST/UKSP Lunch - Wed' : '(M/U)', 
+    #     'Publishing Lunch - Wed'      : '(Pu)', 
+    #     'Careers Lunch - Thur'        : '(Ca)', 
+    #     'Exoplanet Lunch - Thur'      : '(Ex)'
+    # }
+
+    # translate full lunch names into shorthands to be printed on the badges
     lunch_print  = {
-        'Diversity Lunch - Mon'       : '(Di)', 
-        'Outreach Lunch - Tue'        : '(Ou)', 
-        'Joint MIST/UKSP Lunch - Wed' : '(M/U)', 
-        'Publishing Lunch - Wed'      : '(Pu)', 
-        'Careers Lunch - Thur'        : '(Ca)', 
-        'Exoplanet Lunch - Thur'      : '(Ex)'
+        thecols['lunch_cols'][0] : '(Di)', 
+        thecols['lunch_cols'][1] : '(Ou)', 
+        thecols['lunch_cols'][2] : '(M/U)', 
+        thecols['lunch_cols'][3] : '(Pu)', 
+        thecols['lunch_cols'][4] : '(Ca)', 
+        thecols['lunch_cols'][5] : '(Ex)'
     }
 
 
     # map what's in the spreadsheet to what we'll actually print (we have limited space)
+    # this isn't really defined anywhere but here, so make menu changes here as needed
     menu_print = {
         'Watermelon'             : 'Watermelon',
         'Hot Smoked Salmon'      : 'Salmon',
@@ -319,7 +343,8 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     }
 
     # let's fill some NaNs so that we don't have problems later
-    reg[['Preferred Pronouns', 'Affiliation', 'Travel']] = reg[['Preferred Pronouns', 'Affiliation', 'Travel']].fillna(value='')
+    thefillcols = [thecols['pronouns_col'], thecols['affiliation_col'], thecols['travelpref_col']]
+    reg[thefillcols]  = reg[thefillcols].fillna(value='')
     reg[dinner_cols]  = reg[dinner_cols].fillna( value='')
     reg[fullreg_cols] = reg[fullreg_cols].fillna(value=-1)
     reg[dayreg_cols]  = reg[dayreg_cols].fillna( value=-1)
@@ -329,23 +354,25 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     # let's extract some info from the registration csv row
 
     # are they attending the full conference or just certain days?
-    if (reg["Full - Rate 1"] == 1) | (reg["Full - Rate 2"] == 1) | (reg["Full - Rate 3"] == 1) | (reg["Full - Rate 4"] == 1):
-        attend_full = True
-    else:
-        attend_full = False
+    attend_full = False
+    for thekey in thecols['fullrate_cols']:
+        if reg[thekey] == 1:
+            attend_full = True
 
+    if not attend_full:
         # if they're not full registrants they should be day registrants but let's just check
-        if pd.isnull(reg["How many days?"]):
+        if pd.isnull(reg[thecols['daycount_col']]):
             attend_day = False
             # if we're here this person is somehow not registered for any days NOR the full conference so we should just not return a badge
             # maybe they're just registered for the dinner? In which case they don't need a badge, they need a dinner ticket
-            this_errormsg = "Entry for %s has neither full-conference registration nor any days registered" % reg['Name on Badge']
+            this_errormsg = "Entry for %s has neither full-conference registration nor any days registered" % reg[thecols['nameonbadge_col']]
             errormsg.append([this_errormsg])
             if verbose:
                 print(this_errormsg)
             #return None
         else:
             attend_day = True
+            # NOTE if you change the dayreg_cols above this might break too
             which_days = [False, False, False, False]
             for i, col in enumerate(dayreg_cols):
                 # ignore the "how many days?" column
@@ -367,10 +394,10 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
             which_events[i] = True
 
     dinner_guest = False
-    if type(reg['RAS Awards Dinner Guest']) in [float, int]: 
-        if reg['RAS Awards Dinner Guest'] > 0:
+    if type(reg[thecols['guest_col']]) in [float, int]: 
+        if reg[thecols['guest_col']] > 0:
             dinner_guest = True
-        elif len(reg['RAS Awards Dinner Guest']) > 1:
+        elif len(reg[thecols['guest_col']]) > 1:
             dinner_guest = True
         else:
             pass
@@ -390,7 +417,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
 
 
     bus_pass = False
-    if "local bus" in reg['Travel']:
+    if "local bus" in reg[thecols['travelpref_col']]:
         bus_pass = True
 
     # for now - when we get a press list we can do this
@@ -398,7 +425,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     # and let them deal with it
     is_press = False
     try:
-        if reg['is_press'] > 0:
+        if reg[thecols['press_col']] > 0:
             is_press = True
     except:
         pass
@@ -425,7 +452,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         And put it first so that other stuff will write over it
     '''
 
-    if reg['is_loc']:
+    if reg[thecols['loc_col']]:
 
         # also apparently the LOC members who manually sent in reg info
         # are day-registered for all days instead of just fully registered
@@ -489,7 +516,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     # it's assumed below that nobody has more than one banner, as these positions overwrite each other
 
     # RAS Council Banner
-    if reg['is_council']:
+    if reg[thecols['council_col']]:
         council_banner = Image.open(council_banner_path)
 
         # the banners should be pre-made to be the same width as each quadrant
@@ -562,9 +589,9 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     # so if we can't easily extract a surname this might get interesting
 
     # clear leading and trailing spaces before continuing
-    first_name    = reg['Delegate First Name'].strip()
-    surname       = reg['Delegate Surname'].strip()
-    name_on_badge = reg['Name on Badge'].strip()
+    first_name    = reg[thecols['givenname_col']].strip()
+    surname       = reg[thecols['surname_col']].strip()
+    name_on_badge = reg[thecols['nameonbadge_col']].strip()
 
     if name_on_badge.endswith(surname):
         # cool, then let's drop the surname and print that separately
@@ -606,9 +633,6 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         name_print_simple = True
 
         # check if the only reason it didn't match was post-nominals
-        # Add whatever you want to this list
-        postnominals = ['FRAS', 'MBE', 'OBE', 'CBE', 'FRS']
-
         special_suffix = False
         suffix_text    = ''
         name_on_badge_new = name_on_badge + ''
@@ -817,7 +841,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     '''
         Affiliation
     '''
-    this_item = 'Affiliation'
+    this_item = thecols['affiliation_col']
     this_key  = 'affiliation'
     if len(reg[this_item]) > 1:
         # if this is multi-line we want to both move the whole text up a bit *and* make it a bit smaller
@@ -843,7 +867,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
             dy_affil = 0
 
     else:
-        this_errormsg = "NOTE: Badge for %s has no affiliation (%s)" % (reg['Name on Badge'], reg[orderno_col])
+        this_errormsg = "NOTE: Badge for %s has no affiliation (%s)" % (reg[thecols['nameonbadge_col']], reg[orderno_col])
         errormsg.extend([this_errormsg])
         if verbose:
             print(this_errormsg)
@@ -854,7 +878,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     '''
         Pronouns
     '''
-    this_item = 'Preferred Pronouns'
+    this_item = thecols['pronouns_col']
     this_key  = 'pronouns'
     this_font, ctr_text_pos, multiline = get_text_params(reg[this_item], fonts[this_key], this_key, draw_front, textsize_max=textsize_max)
     ctr_text_pos = (ctr_text_pos[0], ctr_text_pos[1] + dy_affil)
@@ -924,7 +948,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
     '''
         Dinner menu choices and guests (upside-down)
     '''
-    if (reg['RAS Award Dinner 03.07.2019'] > 0) | dinner_guest:
+    if (reg[thecols['dinner_col']] > 0) | dinner_guest:
         # This needs to be printed upside down, and there's no way to do that with the text command
         # so we will print onto a temporary image, rotate it, and then paste the whole image.
         the_dinner  = Image.new('RGB', dinner_menu_size, (255, 255, 255))
@@ -967,7 +991,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
 
         if dinner_guest:
             dy_g = 15
-            n_guests = int(reg['RAS Awards Dinner Guest'])
+            n_guests = int(reg[thecols['guest_col']])
             if n_guests > 3:
                 dy = int(0.6*dy)
                 dy_g = 2
@@ -981,6 +1005,9 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
                 else:
                     s_guest = '%d ' % (i_guest+1)
 
+                # NOTE this will likely break as I've assumed a format for the column names
+                # based on the guest number here, and that may not be true for you
+                # 
                 y_pos += dy_g
                 this_text = '+ Guest: ' + reg['RAS Awards Guest %sName' % s_guest]
                 this_key  = 'header' + key_add
