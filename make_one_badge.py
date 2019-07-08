@@ -6,23 +6,10 @@ import sys, os
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 from make_badge import make_badge
-from get_badge_spreadsheet import get_badge_spreadsheet
-
-reg_file = "registration_spreadsheet_example.csv"
+from get_badge_spreadsheet import get_badge_spreadsheet, get_default_files
 
 
-# list of email addresses of LOC members (who get a special badge flag)
-# it's technically a csv but with 1 column so just 1 email per line, no commas
-# but with the first line having column names
-loc_list = "LOC_list.csv"
-
-# list of names of RAS council members (who get a special badge flag)
-# The RAS didn't seem forthcoming with a list of email addresses so let's just hope a name search works
-# this list is structured like council_first_name,council_surname
-# This is quite specific to this example conference but easily substituted for a list of VIPs etc for yours
-#   (in which case you'll also want to edit the banner image that goes with it)
-council_list = "RAS_council_list.csv"
-
+reg_file, loc_list, council_list = get_default_files()
 
 
 # if updated info is present it's a dictionary with keys corresponding to items in the particular row of reg_info you want replaced

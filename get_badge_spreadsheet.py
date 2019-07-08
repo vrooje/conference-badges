@@ -18,6 +18,9 @@ loc_list_default = "LOC_list.csv"
 #   (in which case you'll also want to edit the banner image that goes with it)
 council_list_default = "RAS_council_list.csv"
 
+# just so other programs can pull these default filenames from here instead of having to define them themselves
+def get_default_files():
+	return reg_file_default, loc_list_default, council_list_default
 
 def get_badge_spreadsheet(reg_file=reg_file_default, loc_list=loc_list_default, council_list=council_list_default):
 
