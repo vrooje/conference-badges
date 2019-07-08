@@ -976,7 +976,8 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         y_pos += dy 
 
         this_text = ''
-        for menu_item in ['Starter', 'Main', 'Dessert']:
+        # only ['Starter', 'Main', 'Dessert']
+        for menu_item in dinner_cols[:3]:
             this_text += menu_print[reg[menu_item].strip()]
             if 'Dessert' not in menu_item:
                 this_text += ', '
@@ -992,6 +993,9 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         if dinner_guest:
             dy_g = 15
             n_guests = int(reg[thecols['guest_col']])
+
+            # if there are a lot of guests we need to shrink things a bit for space reasons
+            # Note: 5 guests should just fit; more than that are going to cause issues
             if n_guests > 3:
                 dy = int(0.6*dy)
                 dy_g = 2
@@ -999,17 +1003,11 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
             else:
                 key_add = ''
 
+            # print the name and menu choices of each guest, repositioning with each
             for i_guest in range(n_guests):
-                if i_guest == 0:
-                    s_guest = ''
-                else:
-                    s_guest = '%d ' % (i_guest+1)
 
-                # NOTE this will likely break as I've assumed a format for the column names
-                # based on the guest number here, and that may not be true for you
-                # 
                 y_pos += dy_g
-                this_text = '+ Guest: ' + reg['RAS Awards Guest %sName' % s_guest]
+                this_text = '+ Guest: ' + reg[thecols['guestname_cols'][i_guest]]
                 this_key  = 'header' + key_add
                 this_font = fonts[this_key]
                 dy = font_heights[this_key]
@@ -1018,7 +1016,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
                 y_pos += dy 
 
                 this_text = ''
-                for menu_item in ['Guest %sStarter' % s_guest, 'Guest %sMain' % s_guest, 'Guest %sDessert' % s_guest]:
+                for menu_item in [thecols['gueststarter_cols'][i_guest], thecols['guestmain_cols'][i_guest], thecols['guestdessert_cols'][i_guest]]:
                     this_text += menu_print[reg[menu_item].strip()]
                     if 'Dessert' not in menu_item:
                         this_text += ', '
@@ -1035,6 +1033,7 @@ def make_badge(reg, both_sides=True, make_pdf=True, verbose=True):
         the_front.paste(rot_dinner, dinner_menu_pos)
 
 
+        # this is useful for debugging but doesn't actually need to be saved once you're sure it works
         #the_dinner.save("dinner_menu_temp.png")
     
 
