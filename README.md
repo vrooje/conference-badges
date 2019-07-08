@@ -99,7 +99,7 @@ There are also other options that you can include in the spreadsheet:
 
  9. Themed lunch choices (will be printed inside the badge).
 
-The spreadsheet column names expected by the program are in `make_badge.py`, and should be relatively straightforward to modify. The order in the spreadsheet does not matter and leading/trailing spaces in the column names will be trimmed, but the column names are case-sensitive. 
+The spreadsheet column names expected by the program are in `get_badge_spreadsheet.py` with the function `get_spreadsheet_colnames()`, and should be relatively straightforward to modify. The order in the spreadsheet does not matter and leading/trailing spaces in the column names will be trimmed, but the column names are case-sensitive. If you are changing the structure of the printing as well as the column names (e.g. you have a different number of dinner courses), it will require a bit more work to adapt.
 
 
 ### Licensing
